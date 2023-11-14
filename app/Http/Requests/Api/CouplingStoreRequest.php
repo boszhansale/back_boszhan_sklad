@@ -23,14 +23,12 @@ class CouplingStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'formula_id' => ['required','formulas,id'],
+            'formula_id' => ['required','exists:formulas,id'],
             'box_id' => ['required','exists:boxes,id'],
             'count' => ['required'],
 
-            'products' => ['required'],
-            'products.*.product_id' => ['required','exists:products,id'],
-            'products.*.box_id' => ['required','exists:boxes,id'],
-            'products.*.count' => ['required'],
+            'boxes' => ['required','array','min:1'],
+            'boxes.*' => ['exists:boxes,id'],
 
         ];
     }

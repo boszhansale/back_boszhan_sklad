@@ -7,6 +7,8 @@ use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\CollectingController;
 use App\Http\Controllers\Api\ComingController;
 use App\Http\Controllers\Api\CounteragentController;
+use App\Http\Controllers\Api\CouplingController;
+use App\Http\Controllers\Api\FormulaController;
 use App\Http\Controllers\Api\InventoryController;
 use App\Http\Controllers\Api\MaterialController;
 use App\Http\Controllers\Api\MovingController;
@@ -53,6 +55,14 @@ Route::middleware('auth:sanctum')->group(function (){
         Route::get('/',[UserController::class,'index']);
         Route::get('profile',[UserController::class,'profile']);
         Route::post('update',[UserController::class,'update']);
+    });
+    Route::prefix('formula')->group(function (){
+        Route::get('/',[FormulaController::class,'index']);
+    });
+
+    Route::prefix('coupling')->group(function (){
+        Route::get('/',[CouplingController::class,'index']);
+        Route::post('/',[CouplingController::class,'store']);
     });
 
     Route::prefix('store')->group(function (){

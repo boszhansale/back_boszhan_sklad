@@ -33,6 +33,7 @@ class CouplingProduct extends Model
     protected $fillable = [
         'box_id',
         'product_id',
+        'coupling_id',
         'count',
     ];
 
