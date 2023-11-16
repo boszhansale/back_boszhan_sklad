@@ -36,8 +36,8 @@ class CouplingController extends Controller
         DB::beginTransaction();
         try {
             $formula = Formula::find($request->get('formula_id'));
-            $toBox = Box::find($request->get('box_id'));
-            $coupling =  Auth::user()->couplings()->create(array_merge($request->validated(),['product_id' => $formula->product_id]));
+            $toBox = Box::where('number',$request->get('box_number'))->first();
+            $coupling =  Auth::user()->couplings()->create(array_merge($request->validated(),['product_id' => $formula->product_id,'box_id' => $toBox->id]));
 
 
             if (count($formula->products) == 0){
@@ -46,12 +46,15 @@ class CouplingController extends Controller
             foreach ($formula->products as $formulaProduct) {
                 $count = $formulaProduct->count * $request->get('count');
 
-                foreach ($request->get('boxes') as $boxId)
+                foreach ($request->get('boxes') as $boxNumber)
                 {
 
+
                     $boxProduct = BoxProduct::query()
-                        ->where('box_id',$boxId)
+                        ->join('boxes','boxes.id','box_products.box_id')
+                        ->where('boxes.number',$boxNumber)
                         ->where('product_id',$formulaProduct->product_id)
+                        ->select('box_products.*')
                         ->first();
 
                     if (!$boxProduct){

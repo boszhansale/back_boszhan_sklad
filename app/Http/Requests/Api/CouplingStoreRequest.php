@@ -24,11 +24,11 @@ class CouplingStoreRequest extends FormRequest
     {
         return [
             'formula_id' => ['required','exists:formulas,id'],
-            'box_id' => ['required','exists:boxes,id'],
+            'box_number' => ['required','exists:boxes,number'],
             'count' => ['required'],
 
             'boxes' => ['required','array','min:1'],
-            'boxes.*' => ['exists:boxes,id'],
+            'boxes.*' => ['exists:boxes,number'],
 
         ];
     }

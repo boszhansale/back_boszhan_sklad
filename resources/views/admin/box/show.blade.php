@@ -4,13 +4,16 @@
 
 @section('content')
     <div class="row">
-        <div class="col-md-6">
+        <div class="col-md-6" style="margin-bottom: 25px;">
             <div class="col-md-6">
                 <div class="visible-print text-center">
                     {{--                    {!! QrCode::size(400)->generate($number); !!}--}}
                     <img id="qr" src="data:image/png;base64, {!! base64_encode(QrCode::format('png')->size(400)->generate($box->number)) !!} ">
                 </div>
             </div>
+        </div>
+        <div class="col-md-12">
+            @livewire('admin.box-products',['boxId' => $box->id])
         </div>
     </div>
 
