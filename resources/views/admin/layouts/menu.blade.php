@@ -10,9 +10,16 @@
 <li class="nav-item">
     <a href="{{route('admin.box.index')}}" class="nav-link">
         <i class="nav-icon fa fa-home"></i>
-
         <p>
             Тары
+        </p>
+    </a>
+</li>
+<li class="nav-item">
+    <a href="{{route('admin.formula.index')}}" class="nav-link">
+        <i class="nav-icon fa fa-home"></i>
+        <p>
+            Формула комплектации
         </p>
     </a>
 </li>

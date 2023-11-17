@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\BrandController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\CounteragentController;
 use App\Http\Controllers\Admin\DiscountCardController;
+use App\Http\Controllers\Admin\FormulaController;
 use App\Http\Controllers\Admin\InventoryController;
 use App\Http\Controllers\Admin\MainController;
 use App\Http\Controllers\Admin\MovingController;
@@ -76,6 +77,16 @@ Route::middleware(['admin.check','auth:sanctum'])->group(function (){
         Route::get('show/{box}', [BoxController::class, 'show'])->name('show');
         Route::put('update/{box}', [BoxController::class, 'update'])->name('update');
         Route::get('delete/{box}', [BoxController::class, 'delete'])->name('delete');
+    });
+
+    Route::prefix('formula')->name('formula.')->group(function () {
+        Route::get('/', [FormulaController::class, 'index'])->name('index');
+        Route::get('create', [FormulaController::class, 'create'])->name('create');
+        Route::post('store', [FormulaController::class, 'store'])->name('store');
+        Route::get('edit/{formula}', [FormulaController::class, 'edit'])->name('edit');
+        Route::get('show/{formula}', [FormulaController::class, 'show'])->name('show');
+        Route::put('update/{formula}', [FormulaController::class, 'update'])->name('update');
+        Route::get('delete/{formula}', [FormulaController::class, 'delete'])->name('delete');
     });
 
 

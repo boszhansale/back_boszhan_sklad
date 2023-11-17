@@ -30,6 +30,7 @@ class FormulaProduct extends Model
 
     protected $fillable = [
         'count',
+        'formula_id',
         'product_id'
     ];
 
