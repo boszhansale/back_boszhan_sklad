@@ -177,5 +177,49 @@ class User extends Authenticatable
     {
         return $this->hasMany(Coupling::class);
     }
+    public function products(): HasMany
+    {
+        return $this->hasMany(UserProduct::class);
+    }
+
+    /**
+     * @throws \Exception
+     */
+    public function decrementProduct($productId, $count)
+    {
+        $userProduct = $this->products()->where('product_id',$productId)->first();
+
+        if (!$userProduct)
+        {
+            return;
+            throw new \Exception('у вас не найден продукт: '.$productId);
+        }
+        if ($userProduct->count < $count){
+            throw new \Exception('не хватает: '.$productId);
+        }elseif ($userProduct->count == $count){
+            $this->products()
+                ->where('product_id',$productId)->delete();
+        }else{
+            $this->products()
+                ->where('product_id',$productId)
+                ->decrement('count',$count);
+
+        }
+
+    }
+    public function incrementProduct($productId,$count)
+    {
+
+        $userProduct = $this->products()->where('product_id',$productId)->first();
+        if ($userProduct)
+        {
+            $userProduct->increment('count',$count);
+        }else{
+            $this->products()->create([
+                'product_id' => $productId,
+                'count' => $count
+            ]);
+        }
+    }
 
 }

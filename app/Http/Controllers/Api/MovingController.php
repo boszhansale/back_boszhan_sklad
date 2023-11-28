@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\MovingByStoreRequest;
+use App\Http\Requests\Api\MovingGeneralRequest;
 use App\Http\Requests\Api\MovingIndexRequest;
 use App\Http\Requests\Api\MovingStoreRequest;
 use App\Models\Box;
@@ -53,54 +55,97 @@ class MovingController extends Controller
 
     public function store(MovingStoreRequest $request)
     {
+        if (Auth::id() == $request->get('to_user_id')){
+            return  response()->json(['message' => 'перемещения себе'],400);
+        }
+        DB::beginTransaction();
+
+        try {
+            $fromBox = Box::whereNumber($request->get('from_box_number'))->first();
+            $toBox = Box::whereNumber($request->get('to_box_number'))->first();
+            $toUser = User::find($request->get('to_user_id'));
+
+            $moving = Moving::create([
+                'type' => 1,
+                'from_user_id' => Auth::id(),
+                'from_box_id' =>  $fromBox->id,
+                'to_user_id' => $toUser->id,
+                'to_box_id' => $toBox->id,
+            ]);
+            if (!$moving){
+                throw  new \Exception('error create moving');
+            }
+
+            foreach ($request->get('products') as $item) {
+                $count = (float)$item['count'];
+                $moving->products()->create([
+                    'product_id' => $item['product_id'],
+                    'count' => $item['count'],
+                    'from_box_id' => $fromBox->id,
+                    'to_box_id' => $toBox->id,
+                ]);
+
+                $fromBoxProduct = $fromBox->products()->where('product_id',$item['product_id'])->first();
+                if ($fromBoxProduct){
+                    if ($fromBoxProduct->count == $count){
+                        $fromBoxProduct->delete();
+                    }else if($fromBoxProduct->count > $count){
+                        $fromBoxProduct->decrement('count',$count);
+                        Auth::user()->decrementProduct($item['product_id'],$count);
+                    }else{
+                        throw new \Exception('нехватка');
+                    }
+                }else{
+                    throw new \Exception('не найден продукт: '.$item['product_id']);
+                }
+
+                $toBoxProduct = $toBox->products()->where('product_id',$item['product_id'])->first();
+                if (!$toBoxProduct){
+                    $toBoxProduct = new BoxProduct();
+                    $toBoxProduct->box_id = $toBox->id;
+                    $toBoxProduct->product_id = $item['product_id'];
+                    $toBoxProduct->count = $count;
+                }
+                else{
+                    $toBoxProduct->count += $count;
+                }
+                $toBoxProduct->save();
+                $toUser->incrementProduct($item['product_id'],$count);
+            }
+
+            DB::commit();
+
+            return  response()->json([
+                'to_box' => $toBox,
+                'from_box' => $fromBox,
+                'moving' => $moving,
+            ]);
+        } catch (\Exception $exception){
+            DB::rollback();
+
+            return  response()->json([
+                'message' => $exception->getMessage()
+            ],400);
+        }
+    }
+
+    public function general(MovingGeneralRequest $request)
+    {
 
         DB::beginTransaction();
 
         try {
-            $fromBox = Box::find($request->get('from_box_id'));
-            $toBox = Box::find($request->get('to_box_id'));
+            $toBox = Box::whereNumber($request->get('to_box_number'))->first();
 
-//            if ($fromBox)
-//            {
-//                if ($fromBox->item == null){
-//                    throw new \Exception('коробка "C" пусто');
-//                }
-//                if($fromBox->item->count == $request->get('count')){
-//                    $fromBox->item()->update(['item_id' => null]);
-//                }else if ($fromBox->item->count  < $request->get('count')){
-//                    throw new \Exception('не хватка');
-//                }else if ($fromBox->item->count > $request->get('count')){
-//                    $fromBox->item()->decrement('count',$request->get('count'));
-//                }else{
-//                    throw new \Exception('error');
-//                }
-//            }
-
-//            if ($toBox->item_id){
-//                if ($toBox->item->product_id != $request->get('product_id')){
-//                    throw new \Exception('коробка не пусто');
-//                }
-//            }
-
-            $toUserId = $request->get('to_user_id');
-            if ($request->has('order_id')){
-                $order = Order::find($request->get('order_id'));
-                if (!$order){
-                    throw new \Exception('order not found');
-                }
-                $order->collect_at = now();
-                $order->save();
-                $toUserId = $order->driver_id;
-            }
+            $toUserId = $toBox->warehouse->user_id;
 
             $moving = Moving::create([
+                'type' => 2,
                 'from_user_id' => Auth::id(),
-                'from_box_id' =>  $request->get('from_box_id'),
                 'to_user_id' => $toUserId,
-                'to_box_id' => $request->get('to_box_id'),
-                'order_id' => $request->get('order_id'),
-                'coming_id' => $fromBox?->item?->coming_id
+                'to_box_id' => $toBox->id,
             ]);
+
             if (!$moving){
                 throw  new \Exception('error create moving');
             }
@@ -109,57 +154,98 @@ class MovingController extends Controller
                 $moving->products()->create([
                     'product_id' => $item['product_id'],
                     'count' => $item['count'],
+                    'to_box_id' => $toBox->id,
                 ]);
 
-                if ($fromBox){
-                    $fromBoxProduct = $fromBox->products()->where('product_id',$item['product_id'])->first();
-                    if ($fromBoxProduct){
-                        if ($fromBoxProduct->count = $item['count']){
-                            $fromBoxProduct->delete();
-                        }else if($fromBoxProduct->count > $item['count']){
-                            $fromBoxProduct->decrement('count',$item['count']);
-                        }
-                        else if($fromBoxProduct->count < $item['count']){
-                            throw new \Exception('нехватка');
-                        }
-                    }
-                }
 
-                if ($toBox)
-                {
-                    $toBoxProduct = $toBox->products()->where('product_id',$item['product_id'])->first();
-                    if (!$toBoxProduct){
-                        $toBoxProduct = new BoxProduct();
-                        $toBoxProduct->box_id = $toBox->id;
-                        $toBoxProduct->product_id = $item['product_id'];
-                        $toBoxProduct->count = $item['count'];
-                    }
-                    else{
-                        $toBoxProduct->count += $item['count'];
-                    }
-                    $toBoxProduct->save();
+                $toBoxProduct = $toBox->products()->where('product_id',$item['product_id'])->first();
+                if (!$toBoxProduct){
+                    $toBoxProduct = new BoxProduct();
+                    $toBoxProduct->box_id = $toBox->id;
+                    $toBoxProduct->product_id = $item['product_id'];
+                    $toBoxProduct->count = $item['count'];
                 }
-
+                else{
+                    $toBoxProduct->count += $item['count'];
+                }
+                $toBoxProduct->save();
+                Auth::user()->incrementProduct($item['product_id'],$item['count']);
             }
-
-
-//            if ($toBox->item){
-//                $item = $toBox->item()->increment('count',$request->get('count'));
-//            }else{
-//                $item = $toBox->items()->create([
-//                    'product_id' => $request->get('product_id'),
-//                    'material_id' => $request->get('material_id'),
-//                    'count' => $request->get('count'),
-//                    'moving_id' => $moving->id,
-//                ]);
-//                $toBox->update(['item_id' => $item->id]);
-//            }
-
 
             DB::commit();
 
             return  response()->json([
                 'box' => $toBox,
+                'moving' => $moving,
+            ]);
+        } catch (\Exception $exception){
+            DB::rollback();
+            return  response()->json([
+                'message' => $exception->getMessage()
+            ],400);
+        }
+    }
+
+    public function byStory(MovingByStoreRequest $request)
+    {
+
+        DB::beginTransaction();
+
+        try {
+
+            $order = Order::find($request->get('order_id'));
+            if (!$order){
+                throw new \Exception('order not found');
+            }
+            $order->collect_at = now();
+            $order->save();
+
+            $moving = Moving::create([
+                'type' => 3,
+                'from_user_id' => Auth::id(),
+                'to_user_id' => $order->driver_id,
+                'order_id' => $request->get('order_id'),
+            ]);
+            if (!$moving){
+                throw  new \Exception('error create moving');
+            }
+
+            foreach ($request->get('products') as $item) {
+                $count = (float)$item['count'];
+                $fromBox = Box::query()
+                    ->where('boxes.number',$item['from_box_number'])
+                    ->first();
+
+                if (!$fromBox){
+                    throw new \Exception('QR:'.$item['from_box_number'].' не найден');
+                }
+
+                $fromBoxProduct = $fromBox->products()->where('product_id',$item['product_id'])->first();
+                if ($fromBoxProduct){
+                    if ($fromBoxProduct->count == $count){
+                        $fromBoxProduct->delete();
+                    }else if($fromBoxProduct->count > $count){
+                        $fromBoxProduct->decrement('count',$count);
+                        Auth::user()->decrementProduct($item['product_id'],$count);
+                    }else{
+                        throw new \Exception('нехватка');
+                    }
+                }else{
+                    throw new \Exception('не найден продукт: '.$item['product_id']);
+                }
+                $moving->products()->create([
+                    'product_id' => $item['product_id'],
+                    'from_box_id' => $fromBox->id,
+                    'count' => $item['count'],
+                ]);
+
+            }
+
+
+            DB::commit();
+
+            return  response()->json([
+                'box' => $fromBox,
                 'item' => $item,
                 'moving' => $moving,
             ]);

@@ -35,6 +35,8 @@ class MovingProduct extends Model
         'moving_id',
         'product_id',
         'count',
+        'from_box_number',
+        'to_box_number',
     ];
 
     public function product(): BelongsTo

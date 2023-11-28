@@ -99,6 +99,9 @@ Route::middleware('auth:sanctum')->group(function (){
         Route::get('to',[MovingController::class,'to']);
 
         Route::post('/',[MovingController::class,'store']);
+        Route::post('general',[MovingController::class,'general']);
+        Route::post('by-store',[MovingController::class,'byStory']);
+
         Route::post('accept',[MovingController::class,'accept']);
         Route::post('reject',[MovingController::class,'reject']);
 
@@ -114,6 +117,10 @@ Route::middleware('auth:sanctum')->group(function (){
         Route::get('history',[RejectController::class,'history']);
         Route::post('/',[RejectController::class,'store']);
         Route::delete('{reject}',[RejectController::class,'delete']);
+    });
+
+    Route::prefix('report')->group(function (){
+        Route::get('remains',[ReportController::class,'remains']);
     });
 
 });

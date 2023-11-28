@@ -1,27 +1,13 @@
 <?php
 use App\Http\Controllers\Admin\AuthController;
-use App\Http\Controllers\Admin\BasketController;
 use App\Http\Controllers\Admin\BoxController;
 use App\Http\Controllers\Admin\BrandController;
 use App\Http\Controllers\Admin\CategoryController;
-use App\Http\Controllers\Admin\CounteragentController;
-use App\Http\Controllers\Admin\DiscountCardController;
 use App\Http\Controllers\Admin\FormulaController;
-use App\Http\Controllers\Admin\InventoryController;
 use App\Http\Controllers\Admin\MainController;
-use App\Http\Controllers\Admin\MovingController;
-use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\Admin\ProductController;
-use App\Http\Controllers\Admin\ReceiptController;
-use App\Http\Controllers\Admin\RefundController;
-use App\Http\Controllers\Admin\RefundProducerController;
-use App\Http\Controllers\Admin\RejectController;
-use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\StoreController;
-use App\Http\Controllers\Admin\StoreProductDiscountController;
-use App\Http\Controllers\Admin\StoreProductPromotionController;
 use App\Http\Controllers\Admin\UserController;
-use App\Models\StoreProductDiscount;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -88,7 +74,34 @@ Route::middleware(['admin.check','auth:sanctum'])->group(function (){
         Route::put('update/{formula}', [FormulaController::class, 'update'])->name('update');
         Route::get('delete/{formula}', [FormulaController::class, 'delete'])->name('delete');
     });
+    Route::prefix('category')->name('category.')->group(function () {
+        Route::get('/{brand}', [CategoryController::class, 'index'])->name('index');
+        Route::get('create/{brand}', [CategoryController::class, 'create'])->name('create');
+        Route::post('store/{brand}', [CategoryController::class, 'store'])->name('store');
+        Route::get('edit/{category}', [CategoryController::class, 'edit'])->name('edit');
+        Route::put('update/{category}', [CategoryController::class, 'update'])->name('update');
+        Route::get('delete/{category}', [CategoryController::class, 'delete'])->name('delete');
+    });
+    Route::prefix('brand')->name('brand.')->group(function () {
+        Route::get('/', [BrandController::class, 'index'])->name('index');
+        Route::get('create', [BrandController::class, 'create'])->name('create');
+        Route::post('store', [BrandController::class, 'store'])->name('store');
+        Route::get('edit/{brand}', [BrandController::class, 'edit'])->name('edit');
+        Route::put('update/{brand}', [BrandController::class, 'update'])->name('update');
+        Route::get('delete/{brand}', [BrandController::class, 'delete'])->name('delete');
+    });
+    Route::prefix('product')->name('product.')->group(function () {
+        Route::get('/', [ProductController::class, 'index'])->name('index');
+        Route::get('create', [ProductController::class, 'create'])->name('create');
+        Route::post('store', [ProductController::class, 'store'])->name('store');
+        Route::get('edit/{product}', [ProductController::class, 'edit'])->name('edit');
+        Route::get('show/{product}', [ProductController::class, 'show'])->name('show');
+        Route::put('update/{product}', [ProductController::class, 'update'])->name('update');
+        Route::get('delete/{product}', [ProductController::class, 'delete'])->name('delete');
 
+        Route::post('barcode/store/{product}', [ProductController::class, 'barcodeCreate'])->name('barcode.store');
+        Route::get('barcode/delete/{productBarcode}', [ProductController::class, 'barcodeDelete'])->name('barcode.delete');
+    });
 
 
 });

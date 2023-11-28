@@ -47,6 +47,7 @@ class Moving extends Model
     use HasFactory;
     protected $fillable = [
         'id',
+        'type',
         'status',
         'from_user_id',
         'to_user_id',

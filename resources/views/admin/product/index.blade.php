@@ -5,5 +5,5 @@
     <a href="{{route('admin.product.create')}}" class="btn btn-info btn-sm  ">создать</a>
 @endsection
 @section('content')
-    <livewire:admin.product-index />
+    <livewire:admin.product-index/>
 @endsection

@@ -28,6 +28,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Warehouse extends Model
 {
     use HasFactory;
+    protected $fillable  = [
+      'name',
+      'user_id'
+    ];
 
     public function boxes(): HasMany
     {
