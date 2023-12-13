@@ -146,10 +146,12 @@ class User extends Authenticatable
     {
         return $this->hasMany(Order::class);
     }
-    public function collectings(): HasMany
+
+    public function warehouse(): BelongsTo
     {
-        return $this->hasMany(Collecting::class);
+        return $this->belongsTo(Warehouse::class);
     }
+
 
     public function fromMovings(): HasMany
     {

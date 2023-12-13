@@ -65,10 +65,6 @@ class Moving extends Model
         'created_at' => 'datetime:Y-m-d H:00',
     ];
 
-
-
-
-
     public function coming(): BelongsTo
     {
         return $this->belongsTo(Coming::class);

@@ -158,18 +158,21 @@ class MovingController extends Controller
                 ]);
 
 
-                $toBoxProduct = $toBox->products()->where('product_id',$item['product_id'])->first();
-                if (!$toBoxProduct){
-                    $toBoxProduct = new BoxProduct();
-                    $toBoxProduct->box_id = $toBox->id;
-                    $toBoxProduct->product_id = $item['product_id'];
-                    $toBoxProduct->count = $item['count'];
-                }
-                else{
-                    $toBoxProduct->count += $item['count'];
-                }
-                $toBoxProduct->save();
-                Auth::user()->incrementProduct($item['product_id'],$item['count']);
+               foreach ($item['boxes'] as $itemBox)
+               {
+                   $toBoxProduct = $toBox->products()->where('product_id',$item['product_id'])->first();
+                   if (!$toBoxProduct){
+                       $toBoxProduct = new BoxProduct();
+                       $toBoxProduct->box_id = $toBox->id;
+                       $toBoxProduct->product_id = $item['product_id'];
+                       $toBoxProduct->count = $itemBox['count'];
+                   }
+                   else{
+                       $toBoxProduct->count += $itemBox['count'];
+                   }
+                   $toBoxProduct->save();
+                   Auth::user()->incrementProduct($item['product_id'],$itemBox['count']);
+               }
             }
 
             DB::commit();

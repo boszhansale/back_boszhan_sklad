@@ -5,7 +5,7 @@ namespace App\Http\Requests\Api;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
-class MovingByStoreRequest extends FormRequest
+class ReceiptIndexRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -23,12 +23,6 @@ class MovingByStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'order_id' => ['required'],
-            'products' => ['required','array'],
-
-            'products.*.product_id' => ['required','exists:products,id'],
-            'products.*.from_box_number' => [],
-            'products.*.count' => ['required'],
         ];
     }
     public function messages()

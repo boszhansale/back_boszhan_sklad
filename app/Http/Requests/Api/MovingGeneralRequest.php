@@ -24,10 +24,11 @@ class MovingGeneralRequest extends FormRequest
     {
         return [
             'to_box_number' => ['required','exists:boxes,number'],
-            'products' => ['required'],
+
+            'products' => ['required','array'],
 
             'products.*.product_id' => ['required','exists:products,id'],
-            'products.*.count' => ['required'],
+            'products.*.boxes' => ['required'],
 
         ];
     }

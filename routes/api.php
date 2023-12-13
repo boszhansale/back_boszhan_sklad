@@ -23,6 +23,7 @@ use App\Http\Controllers\Api\StorageController;
 use App\Http\Controllers\Api\StoreController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\WarehouseController;
+use App\Http\Controllers\Api\WarehouseUserDateController;
 use App\Http\Controllers\Api\WebkassaController;
 use App\Http\Controllers\TestController;
 use Illuminate\Http\Request;
@@ -76,6 +77,7 @@ Route::middleware('auth:sanctum')->group(function (){
     //Продажа
     Route::prefix('order')->group(function (){
         Route::get('/',[OrderController::class,'index']);
+        Route::get('show/{id}',[OrderController::class,'orderShow']);
         Route::get('all',[OrderController::class,'all']);
         Route::get('all-by-store',[OrderController::class,'allByStore']);
         Route::get('history',[OrderController::class,'history']);
@@ -87,6 +89,13 @@ Route::middleware('auth:sanctum')->group(function (){
     });
     Route::prefix('warehouse')->group(function (){
         Route::get('/',[WarehouseController::class,'index']);
+        Route::get('users',[WarehouseController::class,'users']);
+
+        Route::prefix('user-date')->group(function (){
+            Route::get('/',[WarehouseUserDateController::class,'index']);
+            Route::post('start',[WarehouseUserDateController::class,'start']);
+            Route::post('end',[WarehouseUserDateController::class,'end']);
+        });
     });
     Route::prefix('box')->group(function (){
         Route::get('show',[BoxController::class,'show'])->withoutMiddleware('auth:sanctum');
@@ -121,6 +130,15 @@ Route::middleware('auth:sanctum')->group(function (){
 
     Route::prefix('report')->group(function (){
         Route::get('remains',[ReportController::class,'remains']);
+    });
+
+    //Поступление товара
+    Route::prefix('receipt')->group(function (){
+        Route::get('/',[ReceiptController::class,'index']);
+        Route::get('history',[ReceiptController::class,'history']);
+        Route::post('/',[ReceiptController::class,'store']);
+        Route::post('update/{receipt}',[ReceiptController::class,'update']);
+        Route::delete('{receipt}',[ReceiptController::class,'delete']);
     });
 
 });

@@ -35,6 +35,9 @@ class OrderController extends Controller
             ->join('orders', 'orders.id', 'baskets.order_id')
             ->join('products', 'products.id', 'baskets.product_id')
             ->where('baskets.type', 0)
+            ->when($request->has('order_id'), function ($q){
+                $q->where('order_id',\request('order_id'));
+            })
             ->whereDate('orders.created_at', now())
             ->whereNull(['orders.deleted_at', 'orders.removed_at', 'baskets.deleted_at'])
             ->groupBy('products.id')
@@ -44,8 +47,8 @@ class OrderController extends Controller
                 $item->count = MovingProduct::query()
                     ->join('movings','movings.id','moving_products.moving_id')
                     ->where('movings.from_user_id',Auth::id())
-                    ->where('product_id',$item->id)
-                    ->whereNull('from_box_id')
+                    ->where('moving_products.product_id',$item->id)
+                    ->where('movings.type',2)
                     ->whereDate('movings.created_at',now())
                     ->sum('moving_products.count');
                 $orders[] = $item;
@@ -63,6 +66,9 @@ class OrderController extends Controller
             ->join('products', 'products.id', 'baskets.product_id')
             ->where('baskets.type', 0)
             ->where('orders.store_id',$request->get('store_id'))
+            ->when($request->has('order_id'), function ($q){
+                $q->where('order_id',\request('order_id'));
+            })
             ->whereDate('orders.delivery_date', now())
             ->whereNull(['orders.deleted_at', 'orders.removed_at', 'baskets.deleted_at'])
             ->groupBy('products.id')
@@ -80,7 +86,6 @@ class OrderController extends Controller
 
         return response()->json($orders);
     }
-
 
     public function storeOrders(Request $request)
     {
@@ -102,6 +107,9 @@ class OrderController extends Controller
     {
         $orders = Order::query()
             ->where('orders.purchase_price','>',0)
+            ->when($request->has('order_id'), function ($q){
+                $q->where('orders.id',\request('order_id'));
+            })
             ->when($request->has('salesrep_id'), function ( $query) {
                 $query->where('salesrep_id',\request('salesrep_id'));
             })
@@ -133,6 +141,16 @@ class OrderController extends Controller
             ->latest()
             ->paginate(50);
         return response()->json($orders);
+    }
+
+    public function orderShow($id)
+    {
+
+        $order = Order::query()
+            ->where('id',$id)
+            ->with(['baskets','baskets.product'])
+            ->first();
+        return response()->json($order);
     }
 }
 

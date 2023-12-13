@@ -1,6 +1,6 @@
 @extends('admin.layouts.index')
 
-@section('content-header-title','Заявки')
+@section('content-header-title','Перемещение')
 @section('content-header-right')
 @endsection
 @section('content')
